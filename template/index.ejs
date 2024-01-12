@@ -50,6 +50,7 @@
         function enviarMsg(){
             const mensagem = $('#mensagemTexto').val();
             socket.emit('NEWMSG', {to: mensagemAtual, from: user.nome, msg: mensagem});
+            $('#mensagemTexto').val('');
         };
         function adicionarUsuario(){
             const newUser = prompt('Qual Usuário deseja adicionar');
