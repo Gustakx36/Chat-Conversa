@@ -11,18 +11,25 @@
 <body class="m-[0] bg-slate-900">
     <div class="w-[100%] h-[100%] flex justify-center items-center">
         <div class="w-[90%] h-[90%] flex">
-            <div class="p-2 w-[30%] h-[100%] bg-slate-800">
-                <div onclick="adicionarUsuario()">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="bg-white rounded-full" width="30px" height="30px" viewBox="0 0 24 24" fill="none">
-                    <path opacity="0.5" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" fill="#1C274C"/>
-                    <path d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z" fill="#1C274C"/>
-                    </svg>
+            <div class="p-2 w-[30%] h-[100%] bg-slate-800" id="divCardAmigos">
+                <div class="p-2 w-[100%] flex" id="cardSvg">
+                    <div class="w-[50%] flex justify-start">
+                        <svg onclick="adicionarUsuario()" xmlns="http://www.w3.org/2000/svg" class="bg-white rounded-full" width="30px" height="30px" viewBox="0 0 24 24" fill="none">
+                            <path opacity="0.5" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" fill="#1C274C"/>
+                            <path d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z" fill="#1C274C"/>
+                        </svg>
+                    </div>
+                    <div class="w-[50%] flex justify-end" id="arrow" onclick="diminuiAbaAmigos()">
+                        <svg xmlns="http://www.w3.org/2000/svg" id="arrowSvg" width="30px" height="30px" viewBox="0 0 24 24" class="z-50 bg-white rounded-full" fill="none">
+                            <path d="M6 12H18M6 12L11 7M6 12L11 17" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
                 </div>
                 <div class="mt-[12px]" id="amigos">
 
                 </div>
             </div>
-            <div class="w-[70%] h-[100%] bg-slate-600">
+            <div class="w-[70%] h-[100%] bg-slate-600" id="cardMsgSend">
                 <div class="h-[98%] m-[5px] rounded-lg bg-slate-400 relative">
                     <div class="p-2 h-[90%] bg-slate-400 rounded-t-lg overflow-auto" id="mensagens">
                     </div>
@@ -47,10 +54,32 @@
         window.addEventListener('resize', function () {
             $('body').css('height', `${window.innerHeight}px`);
         });
+        function diminuiAbaAmigos(){
+            if($('#amigos').css('display') == 'block'){
+                $('#divCardAmigos').addClass('w-[0px]');
+                $('#divCardAmigos').removeClass('p-2');
+                $('#amigos').addClass('hidden');
+                $('#arrow').removeClass('justify-end');
+                $('#arrowSvg').addClass('rotate-180');
+                $('#cardSvg').addClass('flex-row-reverse min-w-[180px]');
+                $('#cardMsgSend').addClass('w-[99.99%]');
+                $('#mensagens').addClass('pt-10');
+            }else{
+                $('#divCardAmigos').removeClass('w-[0px]');
+                $('#divCardAmigos').addClass('p-2');
+                $('#amigos').removeClass('hidden');
+                $('#arrow').addClass('justify-end');
+                $('#arrowSvg').removeClass('rotate-180');
+                $('#cardSvg').removeClass('flex-row-reverse min-w-[180px]');
+                $('#cardMsgSend').removeClass('w-[99.99%]');
+                $('#mensagens').removeClass('pt-10');
+            }
+        }
         function enviarMsg(){
             const mensagem = $('#mensagemTexto').val();
             socket.emit('NEWMSG', {to: mensagemAtual, from: user.nome, msg: mensagem});
             $('#mensagemTexto').val('');
+            document.get
         };
         function adicionarUsuario(){
             const newUser = prompt('Qual Usuário deseja adicionar');
