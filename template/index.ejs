@@ -67,8 +67,8 @@
             var mensagensDiv = '';
             for(const mensagem of mensagens){
                 mensagensDiv += `
-                <div class="w-[100%] flex ${user.nome == mensagem.from ? '" style="justify-content: right;"' : 'justify-start'}">
-                    <h1 class="p-1 bg-cyan-500">${mensagem.msg}</h1>
+                <div class="mt-[12px] mb-[12px] w-[100%] flex ${user.nome == mensagem.from ? 'justify-end' : 'justify-start'}">
+                    <h1 class="p-1 ${user.nome == mensagem.from ? 'bg-cyan-500' : 'bg-gray-500'}">${mensagem.msg}</h1>
                 </div>`;
             }
             $('#mensagens').html(mensagensDiv);
@@ -80,8 +80,8 @@
             if(msg.msg == undefined) return;
             if(mensagemAtual == msg.from){
                 $('#mensagens').append(
-                `<div class="w-[100%] flex justify-start">
-                    <h1 class="p-1 bg-cyan-500">${msg.msg}</h1>
+                `<div class="mt-[12px] mb-[12px] w-[100%] flex justify-start">
+                    <h1 class="p-1 bg-gray-500">${msg.msg}</h1>
                 </div>`);
             }
         });
@@ -91,7 +91,7 @@
             }
             if(user.msg == undefined) return;
             $('#mensagens').append(
-            `<div class="w-[100%] flex justify-end">
+            `<div class="mt-[12px] mb-[12px] w-[100%] flex justify-end">
                 <h1 class="p-1 bg-cyan-500">${user.msg}</h1>
             </div>`);
         })
