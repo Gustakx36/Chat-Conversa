@@ -51,7 +51,6 @@ io.on('connection', (socket) => {
             users[user].sessionId = socket.id;
         }
         io.to(socket.id).emit('LOGADOCALLBACK', users[user]);
-        console.log(users)
     });
     socket.on('NEWMSG', (msg) => {
         if(msg.to == msg.from){
@@ -63,7 +62,6 @@ io.on('connection', (socket) => {
         }
         if(mensagens[`${msg.to}${msg.from}`] == undefined){
             if(mensagens[`${msg.from}${msg.to}`] == undefined){
-                console.log(msg);
                 users[msg.from].amigos.push(msg.to);
                 users[msg.to].amigos.push(msg.from);
                 mensagens[`${msg.to}${msg.from}`] = [msg];
