@@ -20,71 +20,80 @@ app.get('/', (req, res) => {
 });
 
 const users = {};
-var count = 1;
 const mensagens = {};
 
-app.get('/mensagens/:me/:user', (req, res) => {
+app.get('/mensagens/:me/:user/:nivel/:amais', (req, res) => {
     const me = req.params.me;
     const to = req.params.user;
+    const nivel = parseInt(req.params.nivel);
+    const amais = parseInt(req.params.amais);
+    const mensagensPerReq = 20
+    let lista;
+    const inicio = (lista) => {
+        return lista.length - mensagensPerReq - (mensagensPerReq * nivel) - amais;
+    };
+    const fim = (lista) => {
+        return lista.length - 0 - (mensagensPerReq * nivel) - amais;
+    };
     if(mensagens[`${to}${me}`] == undefined){
         if(mensagens[`${me}${to}`] != undefined){
-            return res.json({mensagens: mensagens[`${me}${to}`]});
+            lista = mensagens[`${me}${to}`];
         }else{
-            return;
+            return res.json({statusFim: true});
         }
     }else{
-        return res.json({mensagens: mensagens[`${to}${me}`]});
+        lista = mensagens[`${to}${me}`];
     }
+    if(inicio(lista) < 0){
+        return res.json({
+            mensagens: lista.slice(0, fim(lista)),     
+            statusFim: true
+        });
+    }
+    return res.json({
+        mensagens: lista.slice(inicio(lista), fim(lista)),     
+        statusFim: false
+    });
 })
+
+var count = 1;
 
 io.on('connection', (socket) => {
     io.emit('LOGAR');
-    socket.on('LOGADO', (user) => {
-        if(user == null){
+    socket.on('LOGADO', (nome) => {
+        if(nome == null){
             console.log('Não exite!');
             return;
         }
-        if(users[user] == undefined){
-            users[user] = {id: count, nome: user, sessionId : socket.id, amigos: []};
+        if(users[nome] == undefined){
+            users[nome] = {id: count, nome: nome, sessionId : socket.id, amigos: []};
             count += 1;
         }else{
-            users[user].sessionId = socket.id;
+            users[nome].sessionId = socket.id;
         }
-        io.to(socket.id).emit('LOGADOCALLBACK', users[user]);
+        io.to(socket.id).emit('LOGADOCALLBACK', users[nome]);
     });
     socket.on('NEWMSG', (msg) => {
-        if(msg.to == msg.from){
-            return;
-        }
-        if(users[msg.to] == undefined){
-            console.log('Não exite!');
+        if(msg.to == msg.from || users[msg.to] == undefined){
             return;
         }
         if(mensagens[`${msg.to}${msg.from}`] == undefined){
-            if(mensagens[`${msg.from}${msg.to}`] == undefined){
-                users[msg.from].amigos.push(msg.to);
-                users[msg.to].amigos.push(msg.from);
-                mensagens[`${msg.to}${msg.from}`] = [msg];
-                io.to(users[msg.from].sessionId).emit('RECEIVE', {from: msg.from, msg: msg.msg, amigos: users[msg.from].amigos, status: true});
-                return io.to(users[msg.to].sessionId).emit('CALLBACK', {from: msg.from, msg: msg.msg, user: users[msg.to]});
-            }else{
-                mensagens[`${msg.from}${msg.to}`].push(msg);
-            }
+            mensagens[`${msg.from}${msg.to}`].push(msg);
         }else{
             mensagens[`${msg.to}${msg.from}`].push(msg);
         }
-        io.to(users[msg.from].sessionId).emit('RECEIVE', {from: msg.from,  msg: msg.msg, status: false});
+        io.to(users[msg.from].sessionId).emit('RECEIVE', {from: msg.from,  msg: msg.msg});
         io.to(users[msg.to].sessionId).emit('CALLBACK',  {from: msg.from, msg: msg.msg});
     });
-    socket.on('NEWFRIEND', (newUser) => {
-        if(users[newUser.to] == undefined){
+    socket.on('NEWFRIEND', (newFriend) => {
+        if(users[newFriend.to] == undefined){
             return;
         }
-        users[newUser.from].amigos.push(newUser.to);
-        users[newUser.to].amigos.push(newUser.from);
-        mensagens[`${newUser.from}${newUser.to}`] = [];
-        io.to(users[newUser.from].sessionId).emit('RECEIVE', {from: newUser.from, amigos: users[newUser.from].amigos, status: true});
-        return io.to(users[newUser.to].sessionId).emit('CALLBACK', {from: newUser.from, user: users[newUser.to]});
+        users[newFriend.from].amigos.push(newFriend.to);
+        users[newFriend.to].amigos.push(newFriend.from);
+        mensagens[`${newFriend.from}${newFriend.to}`] = [];
+        io.to(users[newFriend.from].sessionId).emit('RECEIVE', {from: newFriend.from, amigos: users[newFriend.from].amigos, amigosUpdate: true});
+        io.to(users[newFriend.to].sessionId).emit('CALLBACK', {from: newFriend.from, amigos: users[newFriend.to].amigos, amigosUpdate: true});
     })
     socket.on('disconnect', () => {
         console.log(`${socket.id} -> desconectou`);

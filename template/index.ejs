@@ -31,9 +31,11 @@
             </div>
             <div class="w-[70%] h-[100%] bg-slate-600" id="cardMsgSend">
                 <div class="h-[98%] m-[5px] rounded-lg bg-slate-400 relative">
-                    <div class="p-2 h-[90%] bg-slate-400 rounded-t-lg overflow-auto" id="mensagens">
+                    <div class="p-2 h-[90%] bg-slate-400 rounded-t-lg overflow-auto" id="semMensagem">
                     </div>
-                    <div class="w-[100%] h-[10%] min-h-[50px] rounded-b-lg absolute bottom-0 bg-red-300 flex items-center">
+                    <div class="p-2 h-[90%] bg-slate-400 rounded-t-lg overflow-auto hidden" id="mensagens">
+                    </div>
+                    <div class="w-[100%] h-[10%] min-h-[50px] rounded-b-lg absolute bottom-0 bg-red-300 flex items-center hidden" id="enviarMensagem">
                         <input type="text" id="mensagemTexto" class="p-[12px] w-[98%] h-[70%] rounded-full mx-[1%]">
                         <input type="button" onclick="enviarMsg()" class="m-[1%] px-4 py-2 font-semibold text-sm bg-cyan-500 text-white rounded-full shadow-sm" value="enviar">
                     </div>
@@ -50,9 +52,17 @@
     <script>
         let user;
         let mensagemAtual;
+        let nivel;
+        let mensagensAmais;
+        let fimMensagens;
         $('body').css('height', `${window.innerHeight}px`);
         window.addEventListener('resize', function () {
             $('body').css('height', `${window.innerHeight}px`);
+        });
+        $('#mensagens').scroll(function() {
+            if($(this).scrollTop() == 0) {
+                proximasMensagens()
+            }
         });
         function diminuiAbaAmigos(){
             if($('#amigos').css('display') == 'block'){
@@ -75,22 +85,67 @@
                 $('#mensagens').removeClass('pt-10');
             }
         }
+        function amigos(amigos){
+            var amigosDiv = '';
+            for(const amigo of amigos){
+                amigosDiv += `<div id="${amigo}" class="cursor-pointer w-[100%] mb-[5px] p-2 rounded-lg bg-gray-500 flex justify-center" onclick="visualizarMsg('${amigo}')"><h1 class="text-white">${amigo}</h1></div>`
+            }
+            $('#amigos').html(amigosDiv);
+            $(`#${mensagemAtual}`).addClass('bg-green-500');
+        }
         function enviarMsg(){
             const mensagem = $('#mensagemTexto').val();
+            if(mensagem == '') return  $("#mensagemTexto").focus();
             socket.emit('NEWMSG', {to: mensagemAtual, from: user.nome, msg: mensagem});
+            $("#mensagemTexto").focus();
             $('#mensagemTexto').val('');
-            document.get
         };
         function adicionarUsuario(){
-            const newUser = prompt('Qual Usuário deseja adicionar');
-            socket.emit('NEWFRIEND', {to: newUser, from: user.nome});
+            const newFriend = prompt('Qual Usuário deseja adicionar');
+            if(user.nome == newFriend) return;
+            socket.emit('NEWFRIEND', {to: newFriend, from: user.nome});
+        };
+        async function proximasMensagens(){
+            if(fimMensagens) {
+                return console.log('Fim das Mensagens');
+            }
+            const { mensagens, statusFim } = await $.ajax({
+                url: `/mensagens/${user.nome}/${mensagemAtual}/${nivel}/${mensagensAmais}`,
+                dataType: 'json',
+                method: 'GET'
+            });
+            if(mensagens.length == 0){
+                fimMensagens = statusFim;
+                return;
+            }
+            var mensagensDiv = '';
+            var mensagensAntigas = $('#mensagens').html(); 
+            for(const mensagem of mensagens){
+                mensagensDiv += `
+                <div class="mt-[12px] mb-[12px] w-[100%] flex ${user.nome == mensagem.from ? 'justify-end' : 'justify-start'}">
+                    <h1 class="px-4 break-all max-w-[70%] rounded-full p-1 ${user.nome == mensagem.from ? 'bg-cyan-500' : 'bg-gray-500'}">${mensagem.msg}</h1>
+                </div>`;
+            }
+            $('#mensagens').html(`
+                ${mensagensDiv}
+                ${mensagensAntigas}
+            `);
+            nivel += 1;
+            fimMensagens = statusFim;
+            $('#mensagens').prop("scrollTop", 100);
         }
         async function visualizarMsg(amigo){
+            nivel = 0;
+            mensagensAmais = 0;
+            fimMensagens = false;
+            $('#semMensagem').addClass('hidden');
+            $('#mensagens').removeClass('hidden');
+            $('#enviarMensagem').removeClass('hidden');
             $(`#${mensagemAtual}`).removeClass('bg-green-500');
             mensagemAtual = amigo;
             $(`#${mensagemAtual}`).addClass('bg-green-500');
-            const { mensagens } = await $.ajax({
-                url: `/mensagens/${user.nome}/${amigo}`,
+            const { mensagens, statusFim } = await $.ajax({
+                url: `/mensagens/${user.nome}/${amigo}/${nivel}/${mensagensAmais}`,
                 dataType: 'json',
                 method: 'GET'
             });
@@ -102,51 +157,53 @@
                 </div>`;
             }
             $('#mensagens').html(mensagensDiv);
-            $('#mensagens').animate({scrollTop: 9999999}, 500);
-        }
+            setTimeout(() => {
+                $('#mensagens').prop("scrollTop", $('#mensagens').prop("scrollHeight"));
+            }, 1);
+            nivel += 1;
+            fimMensagens = statusFim;
+        };
+        socket.on('LOGAR', () => {
+            let nome;
+            console.log(user == undefined)
+            if(user != undefined){
+                nome = user.nome;
+            }else{
+                nome = prompt('Qual seu usuário?');
+            }
+            socket.emit('LOGADO', nome);
+        });
+        socket.on('LOGADOCALLBACK', (userSession) => {
+            console.log(userSession);
+            user = userSession;
+            amigos(userSession.amigos);
+        });
         socket.on('CALLBACK', (msg) => {
-            if(msg.user != undefined){
-                amigos(msg.user.amigos);
+            if(msg.amigosUpdate){
+                amigos(msg.amigos);
             }
             if(msg.msg == undefined) return;
-            if(mensagemAtual == msg.from){
+            if(msg.from == mensagemAtual){
                 $('#mensagens').append(
                 `<div class="mt-[12px] mb-[12px] w-[100%] flex justify-start">
                     <h1 class="px-4 break-all max-w-[70%] rounded-full rounded-full p-1 bg-gray-500">${msg.msg}</h1>
                 </div>`);
-                $('#mensagens').animate({scrollTop: 9999999}, 500);
+                $('#mensagens').prop("scrollTop", $('#mensagens').prop("scrollHeight"));
+                mensagensAmais += 1;
             }
         });
-        socket.on('RECEIVE', (user) => {
-            if(user.status){
-                amigos(user.amigos);
+        socket.on('RECEIVE', (msg) => {
+            if(msg.amigosUpdate){
+                amigos(msg.amigos);
             }
-            if(user.msg == undefined) return;
+            if(msg.msg == undefined) return;
             $('#mensagens').append(
             `<div class="mt-[12px] mb-[12px] w-[100%] flex justify-end">
-                <h1 class="px-4 break-all max-w-[70%] rounded-full p-1 bg-cyan-500">${user.msg}</h1>
+                <h1 class="px-4 break-all max-w-[70%] rounded-full p-1 bg-cyan-500">${msg.msg}</h1>
             </div>`);
-            $('#mensagens').animate({scrollTop: 9999999}, 500);
-        })
-        socket.on('LOGAR', (msg) => {
-            if(user == undefined){
-                const user = prompt('Qual seu usuário?');
-                socket.emit('LOGADO', user);
-            }
+            $('#mensagens').prop("scrollTop", $('#mensagens').prop("scrollHeight"));
+            mensagensAmais += 1;
         });
-        socket.on('LOGADOCALLBACK', (userSession) => {
-            console.log(userSession)
-            amigos(userSession.amigos)
-            user = userSession;
-        });
-        function amigos(amigos){
-            var amigosDiv = '';
-            for(const amigo of amigos){
-                amigosDiv += `<div id="${amigo}" class="cursor-pointer w-[100%] mb-[5px] p-2 rounded-lg bg-gray-500 flex justify-center" onclick="visualizarMsg('${amigo}')"><h1 class="text-white">${amigo}</h1></div>`
-            }
-            $('#amigos').html(amigosDiv);
-            $(`#${mensagemAtual}`).addClass('bg-green-500');
-        }
     </script>
 </body>
 </html>
