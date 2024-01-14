@@ -64,6 +64,11 @@
                 proximasMensagens()
             }
         });
+        $(document).keypress(function(e) {
+            if(e.which == 13 && document.activeElement.id == 'mensagemTexto'){
+                enviarMsg();
+            }
+        });
         function diminuiAbaAmigos(){
             if($('#amigos').css('display') == 'block'){
                 $('#divCardAmigos').addClass('w-[0px]');
@@ -132,7 +137,7 @@
             `);
             nivel += 1;
             fimMensagens = statusFim;
-            $('#mensagens').prop("scrollTop", 100);
+            $('#mensagens').prop("scrollTop", mensagens.length * 44);
         }
         async function visualizarMsg(amigo){
             nivel = 0;
