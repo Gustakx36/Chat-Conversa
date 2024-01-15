@@ -1,5 +1,6 @@
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 
 // Configuração de armazenamento
 const storage = multer.diskStorage({
@@ -9,7 +10,7 @@ const storage = multer.diskStorage({
     filename: function (req, file, cb) {
         // Extração da extensão do arquivo original:
         const extensaoArquivo = path.extname(file.originalname);
-
+        fs.unlink('./template/uploads/video.mp4')
         // Cria um código randômico que será o nome do arquivo
         const novoNomeArquivo = new Date().getTime();
 
