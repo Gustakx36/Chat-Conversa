@@ -2,6 +2,7 @@ import { fileURLToPath } from 'url';
 import { Server } from 'socket.io';
 import {} from 'dotenv/config';
 import express from 'express';
+import upload from './upload/upload.js';
 import path from 'path';
 import http from 'http';
 import fs from 'fs';
@@ -18,6 +19,14 @@ app.use(express.static(path.join(__dirname, 'template')));
 
 app.get('/', (req, res) => {
     res.render('../template/index');
+});
+
+app.post('/img_upload', upload.array('file[]', 1), (req, res) => {
+    res.status(200).json({status : true});
+});
+
+app.get('/uploadVideo', (req, res) => {
+    res.render('../template/upload');
 });
 
 app.get('/video', (req, res) => {
@@ -128,4 +137,4 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000);
+server.listen(3331);
