@@ -10,7 +10,7 @@
 </head>
 <body class="m-[0] bg-slate-900">
     <div class="w-[100%] h-[100%] flex justify-center items-center">
-        <div class="w-[90%] h-[90%] flex">
+        <div class="w-[90%] h-[90%] flex" id="principal">
             <div class="p-2 w-[30%] h-[100%] bg-slate-800" id="divCardAmigos">
                 <div class="p-2 w-[100%] flex" id="cardSvg">
                     <div class="w-[50%] flex justify-start">
@@ -57,7 +57,7 @@
         let fimMensagens;
         $('body').css('height', `${window.innerHeight}px`);
         window.addEventListener('resize', function () {
-            $('body').css('height', `${window.innerHeight}px`);
+            definicaoResizeAndLoad();
         });
         $('#mensagens').scroll(function() {
             if($(this).scrollTop() == 0) {
@@ -110,65 +110,23 @@
             if(user.nome == newFriend) return;
             socket.emit('NEWFRIEND', {to: newFriend, from: user.nome});
         };
-        async function proximasMensagens(){
-            if(fimMensagens) {
-                return console.log('Fim das Mensagens');
+        function definicaoResizeAndLoad(){
+            const altura = window.innerHeight;
+            const largura = window.innerWidth;
+            $('body').css('height', `${altura}px`);
+            if(largura < 570 && $('#amigos').css('display') == 'block'){
+                if($('#semMensagem').css('display') == 'none') $('#arrow').click();
+                $('#principal').removeClass('w-[90%] h-[90%]');
+                $('#principal').addClass('w-[100%] h-[100%]');
             }
-            const { mensagens, statusFim } = await $.ajax({
-                url: `/mensagens/${user.nome}/${mensagemAtual}/${nivel}/${mensagensAmais}`,
-                dataType: 'json',
-                method: 'GET'
-            });
-            if(mensagens.length == 0){
-                fimMensagens = statusFim;
-                return;
+            if(largura > 570){
+                if($('#amigos').css('display') == 'none') $('#arrow').click();
+                $('#principal').removeClass('w-[100%] h-[100%]');
+                $('#principal').addClass('w-[90%] h-[90%]');
             }
-            var mensagensDiv = '';
-            var mensagensAntigas = $('#mensagens').html(); 
-            for(const mensagem of mensagens){
-                mensagensDiv += `
-                <div class="mt-[12px] mb-[12px] w-[100%] flex ${user.nome == mensagem.from ? 'justify-end' : 'justify-start'}">
-                    <h1 class="px-4 break-all max-w-[70%] rounded-full p-1 ${user.nome == mensagem.from ? 'bg-cyan-500' : 'bg-gray-500'}">${mensagem.msg}</h1>
-                </div>`;
-            }
-            $('#mensagens').html(`
-                ${mensagensDiv}
-                ${mensagensAntigas}
-            `);
-            nivel += 1;
-            fimMensagens = statusFim;
-            $('#mensagens').prop("scrollTop", mensagens.length * 44);
         }
-        async function visualizarMsg(amigo){
-            nivel = 0;
-            mensagensAmais = 0;
-            fimMensagens = false;
-            $('#semMensagem').addClass('hidden');
-            $('#mensagens').removeClass('hidden');
-            $('#enviarMensagem').removeClass('hidden');
-            $(`#${mensagemAtual}`).removeClass('bg-green-500');
-            mensagemAtual = amigo;
-            $(`#${mensagemAtual}`).addClass('bg-green-500');
-            const { mensagens, statusFim } = await $.ajax({
-                url: `/mensagens/${user.nome}/${amigo}/${nivel}/${mensagensAmais}`,
-                dataType: 'json',
-                method: 'GET'
-            });
-            var mensagensDiv = '';
-            for(const mensagem of mensagens){
-                mensagensDiv += `
-                <div class="mt-[12px] mb-[12px] w-[100%] flex ${user.nome == mensagem.from ? 'justify-end' : 'justify-start'}">
-                    <h1 class="px-4 break-all max-w-[70%] rounded-full p-1 ${user.nome == mensagem.from ? 'bg-cyan-500' : 'bg-gray-500'}">${mensagem.msg}</h1>
-                </div>`;
-            }
-            $('#mensagens').html(mensagensDiv);
-            setTimeout(() => {
-                $('#mensagens').prop("scrollTop", $('#mensagens').prop("scrollHeight"));
-            }, 1);
-            nivel += 1;
-            fimMensagens = statusFim;
-        };
         socket.on('LOGAR', () => {
+            definicaoResizeAndLoad();
             let nome;
             if(user != undefined){
                 nome = user.nome;
@@ -183,31 +141,76 @@
             amigos(userSession.amigos);
         });
         socket.on('CALLBACK', (msg) => {
+            mostrarMensagem(msg, msg.from == mensagemAtual, {posicao : 'start', cor : 'gray'});
+        });
+        socket.on('RECEIVE', (msg) => {
+            mostrarMensagem(msg, true, {posicao : 'end', cor : 'cyan'});
+        });
+        function mostrarMensagem(msg, mostrar, config){
             if(msg.amigosUpdate){
                 amigos(msg.amigos);
             }
             if(msg.msg == undefined) return;
-            if(msg.from == mensagemAtual){
+            if(mostrar){
                 $('#mensagens').append(
-                `<div class="mt-[12px] mb-[12px] w-[100%] flex justify-start">
-                    <h1 class="px-4 break-all max-w-[70%] rounded-full rounded-full p-1 bg-gray-500">${msg.msg}</h1>
+                `<div class="mt-[12px] mb-[12px] w-[100%] flex justify-${config.posicao}">
+                    <h1 class="px-4 break-all max-w-[70%] rounded-full rounded-full p-1 bg-${config.cor}-500">${msg.msg}</h1>
                 </div>`);
                 $('#mensagens').prop("scrollTop", $('#mensagens').prop("scrollHeight"));
                 mensagensAmais += 1;
             }
-        });
-        socket.on('RECEIVE', (msg) => {
-            if(msg.amigosUpdate){
-                amigos(msg.amigos);
+        }
+        function proximasMensagens(){
+            if(fimMensagens) {
+                return console.log('Fim das Mensagens');
             }
-            if(msg.msg == undefined) return;
-            $('#mensagens').append(
-            `<div class="mt-[12px] mb-[12px] w-[100%] flex justify-end">
-                <h1 class="px-4 break-all max-w-[70%] rounded-full p-1 bg-cyan-500">${msg.msg}</h1>
-            </div>`);
-            $('#mensagens').prop("scrollTop", $('#mensagens').prop("scrollHeight"));
-            mensagensAmais += 1;
-        });
+            mensagens(mensagemAtual, true)
+            nivel += 1;
+        }
+        function visualizarMsg(amigo){
+            nivel = 0;
+            mensagensAmais = 0;
+            fimMensagens = false;
+            $('#semMensagem').addClass('hidden');
+            $('#mensagens').removeClass('hidden');
+            $('#enviarMensagem').removeClass('hidden');
+            $(`#${mensagemAtual}`).removeClass('bg-green-500');
+            mensagemAtual = amigo;
+            $(`#${mensagemAtual}`).addClass('bg-green-500');
+            $('#mensagens').html('')
+            mensagens(amigo, false)
+            nivel += 1;
+        };
+        async function mensagens(pessoa, proximas){
+            const { mensagens, statusFim } = await $.ajax({
+                url: `/mensagens/${user.nome}/${pessoa}/${nivel}/${mensagensAmais}`,
+                dataType: 'json',
+                method: 'GET'
+            });
+            fimMensagens = statusFim;
+            if(mensagens.length == 0){
+                fimMensagens = statusFim;
+                return;
+            }
+            $('#mensagens').html(popularMensagens(mensagens));
+            setTimeout(() => {
+                $('#mensagens').prop("scrollTop", proximas ? mensagens.length * 44 : $('#mensagens').prop("scrollHeight"));
+            }, 1);
+        }
+        function popularMensagens(mensagens){
+            var mensagensDiv = '';
+            var mensagensAntigas = $('#mensagens').html(); 
+            for(const mensagem of mensagens){
+                mensagensDiv += `
+                <div class="mt-[12px] mb-[12px] w-[100%] flex ${user.nome == mensagem.from ? 'justify-end' : 'justify-start'}">
+                    <h1 class="px-4 break-all max-w-[70%] rounded-full p-1 ${user.nome == mensagem.from ? 'bg-cyan-500' : 'bg-gray-500'}">${mensagem.msg}</h1>
+                </div>`;
+            }
+            return `
+                ${mensagensDiv}
+                ${mensagensAntigas}
+            `;
+        }
     </script>
 </body>
 </html>

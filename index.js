@@ -3,6 +3,8 @@ import { Server } from 'socket.io';
 import {} from 'dotenv/config';
 import express from 'express';
 import upload from './upload/upload.js';
+import user from './entidades/user.js';
+import mensagem from './entidades/mensagem.js';
 import path from 'path';
 import http from 'http';
 import fs from 'fs';
@@ -56,81 +58,37 @@ app.get('/videoRender', (req, res) => {
     videoStream.pipe(res);
 });
 
-const users = {};
-const mensagens = {};
-
 app.get('/mensagens/:me/:user/:nivel/:amais', (req, res) => {
     const me = req.params.me;
     const to = req.params.user;
     const nivel = parseInt(req.params.nivel);
     const amais = parseInt(req.params.amais);
     const mensagensPerReq = 20
-    let lista;
-    const inicio = (lista) => {
-        return lista.length - mensagensPerReq - (mensagensPerReq * nivel) - amais;
-    };
-    const fim = (lista) => {
-        return lista.length - 0 - (mensagensPerReq * nivel) - amais;
-    };
-    if(mensagens[`${to}${me}`] == undefined){
-        if(mensagens[`${me}${to}`] != undefined){
-            lista = mensagens[`${me}${to}`];
-        }else{
-            return res.json({statusFim: true});
-        }
-    }else{
-        lista = mensagens[`${to}${me}`];
-    }
-    if(inicio(lista) < 0){
-        return res.json({
-            mensagens: lista.slice(0, fim(lista)),     
-            statusFim: true
-        });
-    }
-    return res.json({
-        mensagens: lista.slice(inicio(lista), fim(lista)),     
-        statusFim: false
-    });
+    const conversa = mensagem.conversaEmPartes(to, me, nivel, amais, mensagensPerReq);
+    return res.json(conversa);
 })
-
-var count = 1;
 
 io.on('connection', (socket) => {
     io.emit('LOGAR');
     socket.on('LOGADO', (nome) => {
-        if(nome == null){
-            console.log('Não exite!');
-            return;
-        }
-        if(users[nome] == undefined){
-            users[nome] = {id: count, nome: nome, sessionId : socket.id, amigos: []};
-            count += 1;
-        }else{
-            users[nome].sessionId = socket.id;
-        }
-        io.to(socket.id).emit('LOGADOCALLBACK', users[nome]);
+        if(!nome) return console.log('Não exite!');
+        const logado = user.logar(nome, socket.id);
+        io.to(socket.id).emit('LOGADOCALLBACK', logado);
     });
     socket.on('NEWMSG', (msg) => {
-        if(msg.to == msg.from || users[msg.to] == undefined){
-            return;
-        }
-        if(mensagens[`${msg.to}${msg.from}`] == undefined){
-            mensagens[`${msg.from}${msg.to}`].push(msg);
-        }else{
-            mensagens[`${msg.to}${msg.from}`].push(msg);
-        }
-        io.to(users[msg.from].sessionId).emit('RECEIVE', {from: msg.from,  msg: msg.msg});
-        io.to(users[msg.to].sessionId).emit('CALLBACK',  {from: msg.from, msg: msg.msg});
+        if(msg.to == msg.from || !user.acessarUsuario(msg.to)) return;
+        const usuario = user.acessarUsuario(msg.from);
+        const amigo = user.acessarUsuario(msg.to);
+        const resposta = mensagem.enviarMsg(msg);
+        io.to(usuario.sessionId).emit('RECEIVE', resposta);
+        io.to(amigo.sessionId).emit('CALLBACK',  resposta);
     });
     socket.on('NEWFRIEND', (newFriend) => {
-        if(users[newFriend.to] == undefined){
-            return;
-        }
-        users[newFriend.from].amigos.push(newFriend.to);
-        users[newFriend.to].amigos.push(newFriend.from);
-        mensagens[`${newFriend.from}${newFriend.to}`] = [];
-        io.to(users[newFriend.from].sessionId).emit('RECEIVE', {from: newFriend.from, amigos: users[newFriend.from].amigos, amigosUpdate: true});
-        io.to(users[newFriend.to].sessionId).emit('CALLBACK', {from: newFriend.from, amigos: users[newFriend.to].amigos, amigosUpdate: true});
+        const usuario = user.acessarUsuario(newFriend.from);
+        const amigo = user.acessarUsuario(newFriend.to);
+        const resposta = user.criarContato(newFriend);
+        io.to(usuario.sessionId).emit('RECEIVE', resposta.user);
+        io.to(amigo.sessionId).emit('CALLBACK', resposta.amigo);
     })
     socket.on('disconnect', () => {
         console.log(`${socket.id} -> desconectou`);
