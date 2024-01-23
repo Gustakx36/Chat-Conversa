@@ -2,8 +2,14 @@ import { fileURLToPath } from 'url';
 import { Server } from 'socket.io';
 import {} from 'dotenv/config';
 import express from 'express';
-import user from './entidades/user.js';
-import mensagem from './entidades/mensagem.js';
+import user from './entidades_banco_sqlite/user.js';
+// Banco Local (user) - ./entidades/user.js;
+// Banco MySQL (user) - ./entidades_banco_mysql/user.js;
+// Banco SQLite (user) - ./entidades_banco_sqlite/user.js;
+import mensagem from './entidades_banco_sqlite/mensagem.js';
+// Banco Local (mensagem) - ./entidades/user.js;
+// Banco MySQL (mensagem) - ./entidades_banco_mysql/user.js;
+// Banco SQLite (mensagem) - ./entidades_banco_sqlite/user.js;
 import path from 'path';
 import http from 'http';
 

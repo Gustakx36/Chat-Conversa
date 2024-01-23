@@ -55,12 +55,13 @@
         let nivel;
         let mensagensAmais;
         let fimMensagens;
+        let sistemaScroll;
         $('body').css('height', `${window.innerHeight}px`);
         window.addEventListener('resize', function () {
             definicaoResizeAndLoad();
         });
         $('#mensagens').scroll(function() {
-            if($(this).scrollTop() == 0) {
+            if($(this).scrollTop() == 0 && !sistemaScroll) {
                 proximasMensagens()
             }
         });
@@ -164,13 +165,16 @@
             if(fimMensagens) {
                 return console.log('Fim das Mensagens');
             }
-            mensagens(mensagemAtual, true)
+            mensagens(mensagemAtual, 'proximas').then((altura) => {
+                $('#mensagens').prop("scrollTop", altura * 44);
+            });
             nivel += 1;
         }
         function visualizarMsg(amigo){
             nivel = 0;
             mensagensAmais = 0;
             fimMensagens = false;
+            sistemaScroll = true;
             $('#semMensagem').addClass('hidden');
             $('#mensagens').removeClass('hidden');
             $('#enviarMensagem').removeClass('hidden');
@@ -178,10 +182,10 @@
             mensagemAtual = amigo;
             $(`#${mensagemAtual}`).addClass('bg-green-500');
             $('#mensagens').html('')
-            mensagens(amigo, false)
+            mensagens(amigo, 'visualizar');
             nivel += 1;
         };
-        async function mensagens(pessoa, proximas){
+        async function mensagens(pessoa, func){
             const { mensagens, statusFim } = await $.ajax({
                 url: `/mensagens/${user.nome}/${pessoa}/${nivel}/${mensagensAmais}`,
                 dataType: 'json',
@@ -190,12 +194,15 @@
             fimMensagens = statusFim;
             if(mensagens.length == 0){
                 fimMensagens = statusFim;
-                return;
+                return mensagens.length;
             }
             $('#mensagens').html(popularMensagens(mensagens));
+            if(func == 'visualizar')
             setTimeout(() => {
-                $('#mensagens').prop("scrollTop", proximas ? mensagens.length * 44 : $('#mensagens').prop("scrollHeight"));
+                $('#mensagens').prop("scrollTop", $('#mensagens').prop("scrollHeight"));
+                sistemaScroll = false;
             }, 1);
+            return mensagens.length;
         }
         function popularMensagens(mensagens){
             var mensagensDiv = '';
