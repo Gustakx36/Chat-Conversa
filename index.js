@@ -55,6 +55,7 @@ io.on('connection', (socket) => {
     socket.on('NEWFRIEND', async (newFriend) => {
         const usuario = await user.acessarUsuario(newFriend.from);
         const amigo = await user.acessarUsuario(newFriend.to);
+        if(!amigo) return;
         const resposta = await user.criarContato(newFriend);
         io.to(usuario.sessionId).emit('RECEIVE', resposta.user);
         io.to(amigo.sessionId).emit('CALLBACK', resposta.amigo);

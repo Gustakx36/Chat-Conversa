@@ -6,16 +6,11 @@ const usuarioExiste = async (user) => {
 }
 
 const acessarUsuario = async (user, sessionId) => {
-    if(!sessionId){
-        const queryUser = await connection.get('SELECT * FROM users WHERE nome = ?', user);
-        const queryUserAmigos = await connection.all('SELECT * FROM amigos WHERE idUser = ?', queryUser.id);
-        queryUser.amigos = queryUserAmigos.map((item) => {
-            return item.nome
-        });
-        return queryUser;
+    if(sessionId){
+        await connection.run('UPDATE users SET sessionId = ? WHERE nome = ?', sessionId, user);
     }
-    await connection.run('UPDATE users SET sessionId = ? WHERE nome = ?', sessionId, user);
     const queryUser = await connection.get('SELECT * FROM users WHERE nome = ?', user);
+    if(queryUser === undefined) return false;
     const queryUserAmigos = await connection.all('SELECT * FROM amigos WHERE idUser = ?', queryUser.id);
     queryUser.amigos = queryUserAmigos.map((item) => {
         return item.nome
