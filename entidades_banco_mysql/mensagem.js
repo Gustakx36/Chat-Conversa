@@ -1,18 +1,9 @@
+// mesmo arquivo do sql só que implmentando o mysql
 import connection from './connection/connection.js';
 
 const conversaExite = async (to, from) => {
-    var conversaAtual;
-    const [queryMsgUm] = await connection.execute('SELECT * FROM mensagens WHERE toFrom = ?', [`${to}${from}`]);
-    const [queryMsgDois] = await connection.execute('SELECT * FROM mensagens WHERE toFrom = ?', [`${from}${to}`]);
-    const existeOpcaoUm = queryMsgUm.length > 0;
-    const existeOpcaoDois = queryMsgDois.length > 0;
-    if(existeOpcaoUm){
-        conversaAtual = queryMsgUm[0];
-    }
-    if(existeOpcaoDois){
-        conversaAtual = queryMsgDois[0];
-    }
-    return conversaAtual;
+    const [queryMsg] = await connection.execute('SELECT * FROM mensagens WHERE toFrom = ? OR toFrom = ?', [`${to}${from}`, `${from}${to}`]);
+    return queryMsg;
 }
 
 const enviarMsg = async (msg) => {
@@ -38,7 +29,8 @@ const acessarConversa = async (to, from) => {
     return queryMsg;
 }
 
-const conversaEmPartes = async (to, from, nivel, amais, mensagensPerReq) => {
+const conversaEmPartes = async (to, from, nivel, amais) => {
+    const mensagensPerReq = 20
     const incio = mensagensPerReq * nivel + amais;
     const conversa = await conversaExite(to, from);
     if(!conversa) return [];

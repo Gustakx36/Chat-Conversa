@@ -1,10 +1,13 @@
+// import de conexão com banco, varia de acordo com o tipo de banco
 import connection from './connection/connection.js';
 
+// função de verificação da existencia do usuário
 const usuarioExiste = async (user) => {
     const queryUser = await connection.all('SELECT * FROM users WHERE nome = ?', user);
     return queryUser.length > 0;
 }
 
+// função para acessar o usuário
 const acessarUsuario = async (user, sessionId) => {
     if(sessionId){
         await connection.run('UPDATE users SET sessionId = ? WHERE nome = ?', sessionId, user);
@@ -18,13 +21,14 @@ const acessarUsuario = async (user, sessionId) => {
     return queryUser;
 }
 
+// função para criar um usuário novo
 const criarUsuario = async (user, sessionId) => {
-    
     await connection.run('INSERT INTO users (nome, sessionId) VALUES(?, ?)', user, sessionId);
     const userAtual = acessarUsuario(user);
     return userAtual;
 }
 
+// função para validar login do usuário ao se conectar no servidor
 const logar = async (user, sessionId) => {
     if(await usuarioExiste(user)){
         const userAtual = await acessarUsuario(user, sessionId);
@@ -34,6 +38,7 @@ const logar = async (user, sessionId) => {
     return userAtual
 }
 
+// função que valida e cria um registro no banco para referenciar uma ligação entre dois usuários
 const criarContato = async (novoAmigo) => {
     if(!await usuarioExiste(novoAmigo.to)) return false;
     const userAtual = await acessarUsuario(novoAmigo.from);
@@ -50,4 +55,5 @@ const criarContato = async (novoAmigo) => {
     };
 }
 
+// exportando funções que vão ser utilizadas
 export default { logar, criarContato, acessarUsuario };

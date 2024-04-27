@@ -1,20 +1,13 @@
+// import de conexão com banco, varia de acordo com o tipo de banco
 import connection from './connection/connection.js';
 
+// query de verificação da existencia das mensagens
 const conversaExite = async (to, from) => {
-    var conversaAtual;
-    const queryMsgUm = await connection.get('SELECT * FROM mensagens WHERE toFrom = ?', `${to}${from}`);
-    const queryMsgDois = await connection.get('SELECT * FROM mensagens WHERE toFrom = ?', `${from}${to}`);
-    const existeOpcaoUm = !queryMsgUm;
-    const existeOpcaoDois = !queryMsgDois;
-    if(!existeOpcaoUm){
-        conversaAtual = queryMsgUm;
-    }
-    if(!existeOpcaoDois){
-        conversaAtual = queryMsgDois;
-    }
-    return conversaAtual;
+    const queryMsg = await connection.get('SELECT * FROM mensagens WHERE toFrom = ? OR toFrom = ?', `${from}${to}`,`${to}${from}`);
+    return queryMsg;
 }
 
+// query que faz todas as validações e registro de envio das mensagens no final retorno quem enviou e qual mensagem
 const enviarMsg = async (msg) => {
     var conversa = await conversaExite(msg.to, msg.from);
     let idCriacao;
@@ -37,6 +30,7 @@ const enviarMsg = async (msg) => {
     return {from: msg.from,  msg: msg.msg};
 }
 
+// acessar todas as mensagens
 const acessarConversa = async (to, from) => {
     const conversa = await conversaExite(to, from);
     if(!conversa) return [];
@@ -44,7 +38,9 @@ const acessarConversa = async (to, from) => {
     return queryMsg;
 }
 
-const conversaEmPartes = async (to, from, nivel, amais, mensagensPerReq) => {
+// acessar as mensagens em partes, a variavel mensagensPerReq define quantas mensagens por request eu vou carregar
+const conversaEmPartes = async (to, from, nivel, amais) => {
+    const mensagensPerReq = 20
     const incio = mensagensPerReq * nivel + amais;
     const conversa = await conversaExite(to, from);
     if(!conversa) return [];
@@ -61,4 +57,5 @@ const conversaEmPartes = async (to, from, nivel, amais, mensagensPerReq) => {
     };
 }
 
+// exportando funções que vão ser utilizadas
 export default { enviarMsg, conversaEmPartes };

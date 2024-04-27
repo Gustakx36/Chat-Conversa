@@ -13,30 +13,38 @@ import mensagem from './entidades_banco_sqlite/mensagem.js';
 import path from 'path';
 import http from 'http';
 
+
+// Variaveis do endpoint e do servidor
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Configuração da variavel do caminho onde se localiza os arquivos estaticos (html, css, js)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Setando a viwe engine de leitura do "html"
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'template')));
 
+// endpoint para acesso ao front-end da aplicação (html)
 app.get('/', (req, res) => {
+    // res é a variavel padrão da request com ela consigo utilizar o render junto da view engine
+    // e renderizar o html da pasta template
     res.render('../template/index');
 });
 
+// endpoint para pegar as mensagens
 app.get('/mensagens/:me/:user/:nivel/:amais', async (req, res) => {
     const me = req.params.me;
     const to = req.params.user;
     const nivel = parseInt(req.params.nivel);
     const amais = parseInt(req.params.amais);
-    const mensagensPerReq = 20
-    const conversa = await mensagem.conversaEmPartes(to, me, nivel, amais, mensagensPerReq);
+    const conversa = await mensagem.conversaEmPartes(to, me, nivel, amais);
     return res.json(conversa);
 })
 
+// "endpoints" de espera e emissão que o WebSocket Possui
 io.on('connection', (socket) => {
     io.emit('LOGAR');
     socket.on('LOGADO', async (nome) => {
@@ -65,4 +73,5 @@ io.on('connection', (socket) => {
     });
 });
 
+// porta que será rodada a aplicação
 server.listen(3000);
