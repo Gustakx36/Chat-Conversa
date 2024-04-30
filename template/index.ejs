@@ -190,7 +190,6 @@
             file.onload = function() {
                 fileImg = file.result;
                 document.getElementById(name).src = fileImg;
-                socket.emit('teste', {teste: fileImg});
             };       
             file.readAsDataURL(input.files[0]);
             $("#editBg").val('');
