@@ -217,6 +217,7 @@
                 $('#mensagens').prop("scrollTop", $('#mensagens').prop("scrollHeight"));
                 mensagensAmais += 1;
             }
+            $('h1 > img').parent().removeClass('max-w-[70%]');
             $('h1 > img').parent().addClass('max-w-[200px]');
         }
 
@@ -281,6 +282,7 @@
                 </div>`;
             }
             $('#mensagens').html(`${mensagensDiv}${mensagensAntigas}`);
+            $('h1 > img').parent().removeClass('max-w-[70%]');
             $('h1 > img').parent().addClass('max-w-[200px]');
         }
 
