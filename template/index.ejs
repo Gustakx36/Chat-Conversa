@@ -8,10 +8,40 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+<style>
+    h1 > img {
+        max-width: 90%;
+        display: flex;
+        justify-content: center;
+    }
+    h1 {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    div > img {
+        max-width: 35%
+    }
+
+</style>
 <body class="m-[0] bg-slate-900">
     <div class="w-[100%] h-[100%] flex justify-center items-center">
         <div class="w-[90%] h-[90%] flex" id="principal">
             <div class="p-2 w-[30%] h-[100%] bg-slate-800" id="divCardAmigos">
+                <div class="p-2 w-[100%] flex justify-center">
+                    <div class="w-[50%] flex justify-center items-center flex-wrap" onclick="login()" id="arrowLogar">
+                        <p class="text-neutral-100 mr-[12px]">Login</p>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"  class="fill-neutral-100" width="20px" height="20px">
+                            <path d="M217.9 105.9L340.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L217.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1L32 320c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM352 416l64 0c17.7 0 32-14.3 32-32l0-256c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l64 0c53 0 96 43 96 96l0 256c0 53-43 96-96 96l-64 0c-17.7 0-32-14.3-32-32s14.3-32 32-32z"/>
+                        </svg>
+                    </div> 
+                    <div class="w-[50%] flex justify-center hidden items-center flex-wrap" onclick="logout()" id="arrowDeslogar">
+                        <p id="user" class="text-neutral-100 mr-[12px]"></p>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"  class="fill-neutral-100" width="20px" height="20px">
+                            <path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"/>
+                        </svg>
+                    </div>  
+                </div>
                 <div class="p-2 w-[100%] flex" id="cardSvg">
                     <div class="w-[50%] flex justify-start">
                         <svg onclick="adicionarUsuario()" xmlns="http://www.w3.org/2000/svg" class="bg-white rounded-full" width="30px" height="30px" viewBox="0 0 24 24" fill="none">
@@ -30,13 +60,24 @@
                 </div>
             </div>
             <div class="w-[70%] h-[100%] bg-slate-600" id="cardMsgSend">
-                <div class="h-[98%] m-[5px] rounded-lg bg-slate-400 relative">
-                    <div class="p-2 h-[90%] bg-slate-400 rounded-t-lg overflow-auto" id="semMensagem">
+                <div class="h-[98%] m-[5px] rounded-lg bg-slate-400 relative flex flex-col">
+                    <div class="p-2 w-[100%] h-[100%] bg-slate-400 rounded-t-lg overflow-auto" id="semMensagem">
                     </div>
-                    <div class="p-2 h-[90%] bg-slate-400 rounded-t-lg overflow-auto hidden flex flex-col justify-end" id="mensagens">
+                    <div class="p-2 w-[100%] h-[100%] bg-slate-400 rounded-t-lg overflow-auto hidden" id="mensagens">
                     </div>
-                    <div class="w-[100%] h-[10%] min-h-[50px] rounded-b-lg absolute bottom-0 bg-red-300 flex items-center hidden" id="enviarMensagem">
-                        <input type="text" id="mensagemTexto" class="p-[12px] w-[98%] h-[70%] rounded-full mx-[1%]">
+                    <div class="w-[100%] rounded-b-lg bottom-0 bg-red-300 flex items-center hidden" id="enviarMensagem">
+                        <div type="text" id="mensagemTexto" class="bg-white p-[4px] w-[98%] h-[70%] rounded-lg mx-[1%] overflow-auto" contentEditable="true">
+
+                        </div>
+                        <button type="button" class="m-[1%] px-4 py-2 font-semibold text-sm bg-cyan-500 text-white rounded-full shadow-sm" value="enviar">
+                            <label for="editBg" class="labelUp" style="margin-top:5px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20px" height="20px">
+                                    <!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                                    <path d="M0 96C0 60.7 28.7 32 64 32H448c35.3 0 64 28.7 64 64V416c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V96zM323.8 202.5c-4.5-6.6-11.9-10.5-19.8-10.5s-15.4 3.9-19.8 10.5l-87 127.6L170.7 297c-4.6-5.7-11.5-9-18.7-9s-14.2 3.3-18.7 9l-64 80c-5.8 7.2-6.9 17.1-2.9 25.4s12.4 13.6 21.6 13.6h96 32H424c8.9 0 17.1-4.9 21.2-12.8s3.6-17.4-1.4-24.7l-120-176zM112 192a48 48 0 1 0 0-96 48 48 0 1 0 0 96z"/>
+                                </svg>
+                            </label>
+                            <input type="file" class="hidden" name="editBg" id="editBg" onchange="enviarFoto(this)">
+                        </button>
                         <input type="button" onclick="enviarMsg()" class="m-[1%] px-4 py-2 font-semibold text-sm bg-cyan-500 text-white rounded-full shadow-sm" value="enviar">
                     </div>
                 </div>
@@ -56,6 +97,7 @@
         let mensagensAmais;
         let fimMensagens;
         let sistemaScroll;
+        let inputFiles = [];
 
         // event listener para a validação do front
         $('body').css('height', `${window.innerHeight}px`);
@@ -69,9 +111,10 @@
         });
 
         // event listener para identificar o click no enter ao enviar mensagem
-        $(document).keypress(function(e) {
-            if(e.which == 13 && document.activeElement.id == 'mensagemTexto'){
-                enviarMsg();
+        $(document).keydown(function(e) {
+            if(!e.shiftKey && e.which == 13 && document.activeElement.id == 'mensagemTexto'){
+                e.preventDefault();
+                return enviarMsg();
             }
         });
 
@@ -86,6 +129,8 @@
                 $('#cardSvg').addClass('flex-row-reverse min-w-[180px]');
                 $('#cardMsgSend').addClass('w-[99.99%]');
                 $('#mensagens').addClass('pt-10');
+                $('#arrowDeslogar').addClass('hidden');
+                $('#cardSvg').addClass('mt-[-13px] ml-[3px]');
             }else{
                 $('#divCardAmigos').removeClass('w-[0px]');
                 $('#divCardAmigos').addClass('p-2');
@@ -95,6 +140,8 @@
                 $('#cardSvg').removeClass('flex-row-reverse min-w-[180px]');
                 $('#cardMsgSend').removeClass('w-[99.99%]');
                 $('#mensagens').removeClass('pt-10');
+                $('#arrowDeslogar').removeClass('hidden');
+                $('#cardSvg').removeClass('mt-[-13px] ml-[3px]');
             }
         }
 
@@ -127,11 +174,26 @@
 
         // função separada especificamente para enviar mensagem a um usuário
         function enviarMsg(){
-            const mensagem = $('#mensagemTexto').val();
+            const mensagem = $('#mensagemTexto').html().replaceAll('<br>', '\n').trim();
             if(mensagem == '') return  $("#mensagemTexto").focus();
-            socket.emit('NEWMSG', {to: mensagemAtual, from: user.nome, msg: mensagem});
+            socket.emit('NEWMSG', {to: mensagemAtual, from: user.nome, msg: mensagem.replaceAll('\n', '<br>')});
             $("#mensagemTexto").focus();
-            $('#mensagemTexto').val('');
+            $('#mensagemTexto').html('');
+        };
+
+        function enviarFoto(input){
+            const imgTemplate = `<img id="_ID_"></img>`;
+            inputFiles.push(input.files[0]);
+            const name = `${input.files[0].name}${inputFiles.length - 1}`;
+            const fileStr = imgTemplate.replace('_ID_', name);
+            var file = new FileReader();
+            $("#mensagemTexto").append(fileStr);
+            file.onload = function() {
+                fileImg = file.result;
+                document.getElementById(name).src = fileImg;
+            };       
+            file.readAsDataURL(input.files[0]);
+            $("#editBg").val('');
         };
 
         // função separada para adicionar um amigo a lista de amigos
@@ -150,7 +212,7 @@
             if(mostrar){
                 $('#mensagens').append(
                 `<div class="mt-[12px] mb-[12px] w-[100%] flex justify-${config.posicao}">
-                    <h1 class="px-4 break-all max-w-[70%] rounded-full rounded-full p-1 bg-${config.cor}-500">${msg.msg}</h1>
+                    <h1 class="px-4 break-all max-w-[70%] rounded-lg p-1 bg-${config.cor}-500">${msg.msg}</h1>
                 </div>`);
                 $('#mensagens').prop("scrollTop", $('#mensagens').prop("scrollHeight"));
                 mensagensAmais += 1;
@@ -182,6 +244,7 @@
             $(`#${mensagemAtual}`).addClass('bg-green-500');
             $('#mensagens').html('')
             mensagens(amigo, 'visualizar');
+            $('#mensagemTexto').html('');
             nivel += 1;
         };
 
@@ -213,26 +276,48 @@
             for(const mensagem of mensagens){
                 mensagensDiv += `
                 <div class="mt-[12px] mb-[12px] w-[100%] flex ${user.nome == mensagem.from ? 'justify-end' : 'justify-start'}">
-                    <h1 class="px-4 break-all max-w-[70%] rounded-full p-1 ${user.nome == mensagem.from ? 'bg-cyan-500' : 'bg-gray-500'}">${mensagem.msg}</h1>
+                    <h1 class="px-4 break-all max-w-[70%] rounded-lg p-1 ${user.nome == mensagem.from ? 'bg-cyan-500' : 'bg-gray-500'}">${mensagem.msg}</h1>
                 </div>`;
             }
             $('#mensagens').html(`${mensagensDiv}${mensagensAntigas}`);
+        }
+
+        // função de deslogar e logar com um novo usuario
+        function logout(){
+            sessionStorage.clear();
+            location.reload();
+        }
+
+        // função de login caso usuario negue o primeiro prompt
+        function login(){
+            definicaoResizeAndLoad();
+            let userLocal = sessionStorage.nome;
+            let nome = userLocal && userLocal != 'null' ? userLocal : undefined;
+            if(nome == undefined){
+                nome = prompt('Qual seu usuário?');
+                sessionStorage.setItem('nome', nome);
+            }
+            socket.emit('LOGADO', nome);
         }
         
         // assim como no backend da aplicação aqui também tem os "endpoints" de espera e emissão que o WebSocket Possui
         socket.on('LOGAR', () => {
             definicaoResizeAndLoad();
-            let nome;
-            if(user != undefined){
-                nome = user.nome;
-            }else{
+            let userLocal = sessionStorage.nome;
+            let nome = userLocal && userLocal != 'null' ? userLocal : undefined;
+            if(nome == undefined){
+                $('#arrowLogar').removeClass('hidden');
                 nome = prompt('Qual seu usuário?');
+                sessionStorage.setItem('nome', nome);
             }
             socket.emit('LOGADO', nome);
         });
         socket.on('LOGADOCALLBACK', (userSession) => {
             console.log(userSession);
             user = userSession;
+            $('#user').html(user.nome);
+            $('#arrowDeslogar').removeClass('hidden');
+            $('#arrowLogar').addClass('hidden');
             amigos(userSession.amigos);
         });
         socket.on('CALLBACK', (msg) => {
