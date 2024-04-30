@@ -217,7 +217,7 @@
                 $('#mensagens').prop("scrollTop", $('#mensagens').prop("scrollHeight"));
                 mensagensAmais += 1;
             }
-            $('h1 > img').parent().addClass('min-w-[10px]');
+            $('h1 > img').parent().addClass('min-w-[200px]');
         }
 
         // função que carrega mais mensagens caso não eteja no final da conversa (já carregou a ultima mensagem)
@@ -281,7 +281,7 @@
                 </div>`;
             }
             $('#mensagens').html(`${mensagensDiv}${mensagensAntigas}`);
-            $('h1 > img').parent().addClass('min-w-[10px]');
+            $('h1 > img').parent().addClass('min-w-[200px]');
         }
 
         // função de deslogar e logar com um novo usuario
