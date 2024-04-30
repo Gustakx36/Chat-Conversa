@@ -10,14 +10,13 @@
 </head>
 <style>
     h1 > img {
-        max-width: 90%;
+        max-width: 100%;
         display: flex;
         justify-content: center;
     }
     h1 {
         display: flex;
         flex-direction: column;
-        align-items: flex-end;
     }
     div > img {
         max-width: 35%
@@ -111,7 +110,8 @@
 
         // event listener para identificar o click no enter ao enviar mensagem
         $(document).keydown(function(e) {
-            if(!e.shiftKey && e.which == 13 && document.activeElement.id == 'mensagemTexto'){
+            const usuarioMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if(!e.shiftKey && e.which == 13 && document.activeElement.id == 'mensagemTexto' && !usuarioMobile){
                 e.preventDefault();
                 return enviarMsg();
             }
@@ -190,6 +190,7 @@
             file.onload = function() {
                 fileImg = file.result;
                 document.getElementById(name).src = fileImg;
+                socket.emit('teste', {teste: fileImg});
             };       
             file.readAsDataURL(input.files[0]);
             $("#editBg").val('');
@@ -211,12 +212,12 @@
             if(mostrar){
                 $('#mensagens').append(
                 `<div class="mt-[12px] mb-[12px] w-[100%] flex justify-${config.posicao}">
-                    <h1 class="px-4 break-all max-w-[70%] rounded-lg p-1 bg-${config.cor}-500">${msg.msg}</h1>
+                    <h1 class="px-4 break-all max-w-[70%] justify-${config.posicao} rounded-lg p-1 bg-${config.cor}-500">${msg.msg}</h1>
                 </div>`);
                 $('#mensagens').prop("scrollTop", $('#mensagens').prop("scrollHeight"));
                 mensagensAmais += 1;
             }
-            $('h1 > img').parent().addClass('w-[200px]');
+            $('h1 > img').parent().addClass('min-w-[10px]');
         }
 
         // função que carrega mais mensagens caso não eteja no final da conversa (já carregou a ultima mensagem)
@@ -280,7 +281,7 @@
                 </div>`;
             }
             $('#mensagens').html(`${mensagensDiv}${mensagensAntigas}`);
-            $('h1 > img').parent().addClass('w-[200px]');
+            $('h1 > img').parent().addClass('min-w-[10px]');
         }
 
         // função de deslogar e logar com um novo usuario

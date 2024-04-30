@@ -68,6 +68,9 @@ io.on('connection', (socket) => {
         io.to(usuario.sessionId).emit('RECEIVE', resposta.user);
         io.to(amigo.sessionId).emit('CALLBACK', resposta.amigo);
     })
+    socket.on('teste', async (src) => {
+        console.log(src);
+    })
     socket.on('disconnect', () => {
         console.log(`${socket.id} -> desconectou`);
     });
